@@ -18,13 +18,38 @@ char tokenHeader[]   = "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621"; // TagoIO Token
 HTTPClient client; // Iniciar uma nova instância do cliente HTTP
 DHT dht(DHTPIN, DHTTYPE);
 
+float Umidade = dht.readHumidity(); // Variável de umidade
+float Temperatura = dht.readTemperature(); // Variável de temperatura
+
+float Chuva = 0.0;
+float ValueChuva[arraySize] = {0, 0, 0, 0};
+float ChuvaHora = 0;
+float AddChuva = 1.6;
+
+long Inicio = 0; // Tempo do inicio do aparelho
+long Intervalo = 10; // Controle de Minutos
+int contador = 0;
+
+int reedCounter = 0;
+bool reedSwitchstate= false;
+
 void setup() {
   Serial.begin(9600);
   init_wifi();
   pinMode(DHTPIN, INPUT);
   dht.begin(); // Inicializar o sensor DHT11
-  pinMode(REED_SWITCH_PIN, INPUT_PULLUP); // Configurar o reed switch como entrada com resistor pull-up
+  pinMode(REED_SWITCH_PIN, INPUT); // Configurar o reed switch como entrada com resistor
+  attachInterrupt(digitalPinToInterrupt(REED_SWITCH_PIN), count, FALLING);
 }
+
+void count() {
+  if (!reedSwitchstate) {
+    reedSwitchstate = true;
+    Chuva = Chuva + AddChuva;
+  }
+
+}
+
 void init_wifi() {
   Serial.println("Conectando WiFi");
   WiFi.begin(ssid, pass);
@@ -37,23 +62,11 @@ void init_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-int ReedSwitch = digitalRead(REED_SWITCH_PIN); // Variável do Reed Switch
-float Umidade = dht.readHumidity(); // Variável de umidade
-float Temperatura = dht.readTemperature(); // Variável de temperatura
-
-float Chuva = 0.0;
-float ValueChuva[arraySize] = {0, 0, 0, 0};
-float ChuvaHora = 0;
-float AddChuva = 1.6;
-
-long Inicio = 0; // Tempo do inicio do aparelho
-long Intervalo = 1 * 60 * 1000; // Controle de Minutos
-int AnteriorRS = LOW; // Inicialize com um valor conhecido
-int contador = 0;
-
 void loop() {
+
   long Agora = millis();  // Obtém o tempo atual
-  ReedSwitch;
+  bool ReedSwitch = digitalRead(REED_SWITCH_PIN); // Variável do Reed Switch
+  Serial.println (ReedSwitch);
   
   char anyData[30];
   char anyData1[30];
@@ -62,15 +75,9 @@ void loop() {
   char tempData[300];
   int statusCode = 0;
 
-  if (ReedSwitch != AnteriorRS) { // Houve uma mudança no estado do reed switch
-    if (ReedSwitch == HIGH) {
-      // O reed switch mudou para HIGH (contato fechado)
-      Chuva += AddChuva;
-    } else {
-      // O reed switch mudou para LOW (contato aberto)
-      Chuva += AddChuva;
-    }
-    AnteriorRS = ReedSwitch; // Atualize o estado anterior
+  if (reedSwitchstate) {
+    delay(20);
+    reedSwitchstate= false;
   }
 
   if (Agora - Inicio >= Intervalo) { // Passou o intervalo definido
@@ -81,10 +88,10 @@ void loop() {
     } else {
             ValueChuva [contador] = Chuva;
     }
-        contador = contador + 1;
-        for (int i = 0; i < 4; i++) {
-            ChuvaHora += ValueChuva[i];
-        } 
+    contador = contador + 1;
+    for (int i = 0; i < 4; i++) {
+        ChuvaHora += ValueChuva[i];
+    }  
         
   // Formatar e enviar dados de Chuva/Hora
   strcpy(chuvaData, "{\n\t\"variable\": \"Chuva\",\n\t\"value\": ");
@@ -136,7 +143,7 @@ void loop() {
   Serial.println(statusCode);
   Serial.println("End of POST to TagoIO");
 
-  Inicio = Agora;  // Atualiza o tempo da última reinicialização
+  // Atualiza o tempo da última reinicialização
   
   Serial.print("ValueChuva: ");
   for (int i = 0; i < 4; i++) {
@@ -153,5 +160,7 @@ void loop() {
   Serial.print("Temperatura: ");
   Serial.println (Temperatura);
   }
+
+  Inicio = Agora;
   
 }
