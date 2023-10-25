@@ -150,7 +150,7 @@ void loop() {
       Serial.println(statusCode);
 
       /* Informações de Temperatura*/
-      strcpy(tempData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
+      strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
       dtostrf(temperatura, 6, 2, anyData);
       strncat(tempData, anyData, 100);
       getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
@@ -165,7 +165,7 @@ void loop() {
       Serial.println(statusCode);
 
       /* Informações de Umidade*/
-      strcpy(umidadeData, "{\n\t\"variable\": \"Chuva\",\n\t\"value\": \"");
+      strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
       dtostrf(umidade, 6, 2, anyData);
       strncat(umidadeData, anyData, 100);
       getStatus(umidade, TIPO_UMIDADE, varStatus);
