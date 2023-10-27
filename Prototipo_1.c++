@@ -2,7 +2,7 @@
 #define DHTPIN 15       // Pino onde o sensor DHT11 está conectado
 #define DHTTYPE DHT11   // Tipo do sensor DHT
 #define REED_SWITCH 13  // Pino onde o reed switch está conectado
-#define arraySize 20     // Definindo o tamanho da Array
+#define arraySize 10     // Definindo o tamanho da Array
 
 /* Definindo regra de status return */
 #define TIPO_CHUVA 1
@@ -53,7 +53,7 @@ int statusCode = 0;
 float temperatura = 0;
 float umidade = 0;
 float chuva = 0;
-float addChuva = 1.0;
+float addChuva = 0.4;
 float chuvaH = 0;
 bool reedStats = false;
 
@@ -154,6 +154,7 @@ void loop() {
     Serial.print("Informações de Chuva: ");
     Serial.println(chuvaData);
     Serial.println(statusCode);
+    delay (300);
 
     /* Informações de Temperatura*/
     strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
@@ -169,6 +170,7 @@ void loop() {
     Serial.print("Informações de temperatura: ");
     Serial.println(tempData);
     Serial.println(statusCode);
+    delay (300);
 
     /* Informações de Umidade*/
     strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
@@ -198,4 +200,4 @@ void loop() {
     Serial.println("]");
     controle = millis();
   }
-}
+} 
