@@ -1,8 +1,8 @@
-#define deviceID = 1 //ID do dispositivo
-#define DHTPIN 15 // Pino onde o sensor DHT11 está conectado
-#define DHTTYPE DHT11 // Tipo do sensor DHT
-#define REED_SWITCH 13 // Pino onde o reed switch está conectado
-#define arraySize 4 // Definindo o tamanho da Array
+#define deviceID = 1    //ID do dispositivo
+#define DHTPIN 15       // Pino onde o sensor DHT11 está conectado
+#define DHTTYPE DHT11   // Tipo do sensor DHT
+#define REED_SWITCH 13  // Pino onde o reed switch está conectado
+#define arraySize 4     // Definindo o tamanho da Array
 
 /* Definindo regra de status return */
 #define TIPO_CHUVA 1
@@ -14,22 +14,22 @@
 #include "HTTPClient.h"
 #include "DHT.h"
 
-char ssid[] = "Galaxy Felipe"; // Nome da rede WiFi
-char pass[] = "Felipe100603"; // Senha da rede WiFi
+char ssid[] = "Galaxy Felipe";                      // Nome da rede WiFi
+char pass[] = "Felipe100603";                       // Senha da rede WiFi
 char serverAddress[] = "https://api.tago.io/data";  // TagoIO address
 char contentHeader[] = "application/json";
-char tokenHeader[]   = "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621"; // TagoIO Token
+char tokenHeader[] = "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621";  // TagoIO Token
 
-HTTPClient client; // Iniciar uma nova instância do cliente HTTP
+HTTPClient client;  // Iniciar uma nova instância do cliente HTTP
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
-  Serial.begin (9600);
+  Serial.begin(9600);
   init_wifi();
   pinMode(DHTPIN, INPUT);
-  dht.begin(); // Inicializar o sensor DHT11
-  pinMode (REED_SWITCH, INPUT);
-  attachInterrupt(digitalPinToInterrupt(REED_SWITCH), count, FALLING); //Debouncing Reed Switch
+  dht.begin();  // Inicializar o sensor DHT11
+  pinMode(REED_SWITCH, INPUT);
+  attachInterrupt(digitalPinToInterrupt(REED_SWITCH), count, FALLING);  //Debouncing Reed Switch
 }
 
 void init_wifi() {
@@ -57,11 +57,11 @@ float addChuva = 1.6;
 float chuvaH = 0;
 bool reedStats = false;
 
-float lastChuva [arraySize]  = {0, 0, 0, 0};
+float lastChuva[arraySize] = { 0, 0, 0, 0 };
 int arrayCounter = 0;
 
-long controle = 0; // Tempo do inicio do aparelho
-long intervalo = 5 * 1000; // Controle de Minutos
+long controle = 0;          // Tempo do inicio do aparelho
+long intervalo = 5 * 1000;  // Controle de Minutos
 
 // Função para obter o status com base no valor
 void getStatus(float value, int variableName, char* retorno) {
@@ -93,7 +93,7 @@ void getStatus(float value, int variableName, char* retorno) {
       if (value >= 80.0) {
         strcpy(retorno, ";UmidadeAlta");
       } else if (value >= 50.0) {
-        strcpy (retorno, ";UmidadeBoa");
+        strcpy(retorno, ";UmidadeBoa");
       } else if (value > 0) {
         strcpy(retorno, ";UmidadeBaixa");
       }
@@ -109,82 +109,85 @@ void count(void) {
 }
 
 void loop() {
-  long agora = millis();  // Obtém o tempo atual
-  float umidade = dht.readHumidity(); // Variável de umidade
-  float temperatura = dht.readTemperature(); // Variável de temperatura
+  long agora = millis();                      // Obtém o tempo atual
+  float umidade = dht.readHumidity();         // Variável de umidade
+  float temperatura = dht.readTemperature();  // Variável de temperatura
 
   if (reedStats) {
     delay(300);
     reedStats = false;
     Serial.print("chuva: ");
-    Serial.println (chuva);
+    Serial.println(chuva);
     Serial.print("umidade: ");
-    Serial.println (umidade);
+    Serial.println(umidade);
     Serial.print("temperatura: ");
-    Serial.println (temperatura);
+    Serial.println(temperatura);
   }
   if (agora - controle >= intervalo) {
     if (arrayCounter >= arraySize) {
       arrayCounter = 0;
-      for (int i = 0; i < arraySize; i++) {
-        chuvaH = chuvaH + lastChuva[i];
-      }
-      Serial.print("Soma = "); Serial.println(chuvaH);
-
-      /* Mandando dados para TAGO */
-      char varStatus[100];
-
-      /* Informações de Chuva*/
-      strcpy(chuvaData, "{\n\t\"variable\": \"Chuva\",\n\t\"value\": \"");
-      dtostrf(chuvaH, 6, 2, anyData);
-      strncat(chuvaData, anyData, 100);
-      getStatus(chuvaH, TIPO_CHUVA, varStatus);
-      strncat(chuvaData, varStatus, 100);
-      strcat(chuvaData, "\"\n\t}\n");
-      client.begin(serverAddress);
-      client.addHeader("Content-Type", contentHeader);
-      client.addHeader("Device-Token", tokenHeader);
-      statusCode = client.POST(chuvaData);
-      Serial.print("Informações de Chuva: ");
-      Serial.println(chuvaData);
-      Serial.println(statusCode);
-
-      /* Informações de Temperatura*/
-      strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
-      dtostrf(temperatura, 6, 2, anyData);
-      strncat(tempData, anyData, 100);
-      getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
-      strncat(tempData, varStatus, 100);
-      strcat(tempData, "\"\n\t}\n");
-      client.begin(serverAddress);
-      client.addHeader("Content-Type", contentHeader);
-      client.addHeader("Device-Token", tokenHeader);
-      statusCode = client.POST(tempData);
-      Serial.print("Informações de temperatura: ");
-      Serial.println(tempData);
-      Serial.println(statusCode);
-
-      /* Informações de Umidade*/
-      strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
-      dtostrf(umidade, 6, 2, anyData);
-      strncat(umidadeData, anyData, 100);
-      getStatus(umidade, TIPO_UMIDADE, varStatus);
-      strncat(umidadeData, varStatus, 100);
-      strcat(umidadeData, "\"\n\t}\n");
-      client.begin(serverAddress);
-      client.addHeader("Content-Type", contentHeader);
-      client.addHeader("Device-Token", tokenHeader);
-      statusCode = client.POST(umidadeData);
-      Serial.print("Informações de umidade: ");
-      Serial.println(umidadeData);
-      Serial.println(statusCode);
-
-
-      chuvaH = 0;
     }
+    Serial.print("Soma = ");
+    Serial.println(chuvaH);
+
     lastChuva[arrayCounter] = chuva;
     arrayCounter = arrayCounter + 1;
+
+    for (int i = 0; i < arraySize; i++) {
+      chuvaH = chuvaH + lastChuva[i];
+    }
+
+    /* Mandando dados para TAGO */
+    char varStatus[100];
+
+    /* Informações de Chuva*/
+    strcpy(chuvaData, "{\n\t\"variable\": \"Chuva\",\n\t\"value\": \"");
+    dtostrf(chuvaH, 6, 2, anyData);
+    strncat(chuvaData, anyData, 100);
+    getStatus(chuvaH, TIPO_CHUVA, varStatus);
+    strncat(chuvaData, varStatus, 100);
+    strcat(chuvaData, "\"\n\t}\n");
+    client.begin(serverAddress);
+    client.addHeader("Content-Type", contentHeader);
+    client.addHeader("Device-Token", tokenHeader);
+    statusCode = client.POST(chuvaData);
+    Serial.print("Informações de Chuva: ");
+    Serial.println(chuvaData);
+    Serial.println(statusCode);
+
+    /* Informações de Temperatura*/
+    strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
+    dtostrf(temperatura, 6, 2, anyData);
+    strncat(tempData, anyData, 100);
+    getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
+    strncat(tempData, varStatus, 100);
+    strcat(tempData, "\"\n\t}\n");
+    client.begin(serverAddress);
+    client.addHeader("Content-Type", contentHeader);
+    client.addHeader("Device-Token", tokenHeader);
+    statusCode = client.POST(tempData);
+    Serial.print("Informações de temperatura: ");
+    Serial.println(tempData);
+    Serial.println(statusCode);
+
+    /* Informações de Umidade*/
+    strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
+    dtostrf(umidade, 6, 2, anyData);
+    strncat(umidadeData, anyData, 100);
+    getStatus(umidade, TIPO_UMIDADE, varStatus);
+    strncat(umidadeData, varStatus, 100);
+    strcat(umidadeData, "\"\n\t}\n");
+    client.begin(serverAddress);
+    client.addHeader("Content-Type", contentHeader);
+    client.addHeader("Device-Token", tokenHeader);
+    statusCode = client.POST(umidadeData);
+    Serial.print("Informações de umidade: ");
+    Serial.println(umidadeData);
+    Serial.println(statusCode);
+
+    chuvaH = 0;
     chuva = 0;
+
     Serial.print("lastChuva: [");
     for (int i = 0; i < arraySize; i++) {
       Serial.print(lastChuva[i]);
