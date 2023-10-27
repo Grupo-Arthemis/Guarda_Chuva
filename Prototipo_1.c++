@@ -2,7 +2,7 @@
 #define DHTPIN 15       // Pino onde o sensor DHT11 está conectado
 #define DHTTYPE DHT11   // Tipo do sensor DHT
 #define REED_SWITCH 13  // Pino onde o reed switch está conectado
-#define arraySize 4     // Definindo o tamanho da Array
+#define arraySize 20     // Definindo o tamanho da Array
 
 /* Definindo regra de status return */
 #define TIPO_CHUVA 1
@@ -53,15 +53,15 @@ int statusCode = 0;
 float temperatura = 0;
 float umidade = 0;
 float chuva = 0;
-float addChuva = 1.6;
+float addChuva = 1.0;
 float chuvaH = 0;
 bool reedStats = false;
 
-float lastChuva[arraySize] = { 0, 0, 0, 0 };
+float lastChuva[arraySize] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int arrayCounter = 0;
 
 long controle = 0;          // Tempo do inicio do aparelho
-long intervalo = 5 * 1000;  // Controle de Minutos
+long intervalo = 3 * 60 * 1000;  // Controle de Minutos
 
 // Função para obter o status com base no valor
 void getStatus(float value, int variableName, char* retorno) {
