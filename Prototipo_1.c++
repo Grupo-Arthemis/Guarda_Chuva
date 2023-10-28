@@ -14,8 +14,8 @@
 #include "HTTPClient.h"
 #include "DHT.h"
 
-char ssid[] = "Galaxy Felipe";                      // Nome da rede WiFi
-char pass[] = "Felipe100603";                       // Senha da rede WiFi
+char ssid[] = "AndroidAP5599";                      // Nome da rede WiFi
+char pass[] = "barreto351";                       // Senha da rede WiFi
 char serverAddress[] = "https://api.tago.io/data";  // TagoIO address
 char contentHeader[] = "application/json";
 char tokenHeader[] = "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621";  // TagoIO Token
@@ -61,7 +61,7 @@ float lastChuva[arraySize] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int arrayCounter = 0;
 
 long controle = 0;          // Tempo do inicio do aparelho
-long intervalo = 3 * 60 * 1000;  // Controle de Minutos
+long intervalo = 20 * 1000;  // Controle de Minutos
 
 // Função para obter o status com base no valor
 void getStatus(float value, int variableName, char* retorno) {
@@ -154,23 +154,7 @@ void loop() {
     Serial.print("Informações de Chuva: ");
     Serial.println(chuvaData);
     Serial.println(statusCode);
-    delay (300);
-
-    /* Informações de Temperatura*/
-    strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
-    dtostrf(temperatura, 6, 2, anyData);
-    strncat(tempData, anyData, 100);
-    getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
-    strncat(tempData, varStatus, 100);
-    strcat(tempData, "\"\n\t}\n");
-    client.begin(serverAddress);
-    client.addHeader("Content-Type", contentHeader);
-    client.addHeader("Device-Token", tokenHeader);
-    statusCode = client.POST(tempData);
-    Serial.print("Informações de temperatura: ");
-    Serial.println(tempData);
-    Serial.println(statusCode);
-    delay (300);
+    delay (400);
 
     /* Informações de Umidade*/
     strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
@@ -179,13 +163,24 @@ void loop() {
     getStatus(umidade, TIPO_UMIDADE, varStatus);
     strncat(umidadeData, varStatus, 100);
     strcat(umidadeData, "\"\n\t}\n");
-    client.begin(serverAddress);
-    client.addHeader("Content-Type", contentHeader);
-    client.addHeader("Device-Token", tokenHeader);
     statusCode = client.POST(umidadeData);
     Serial.print("Informações de umidade: ");
     Serial.println(umidadeData);
     Serial.println(statusCode);
+    delay(400);
+
+    /* Informações de Temperatura*/
+    strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
+    dtostrf(temperatura, 6, 2, anyData);
+    strncat(tempData, anyData, 100);
+    getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
+    strncat(tempData, varStatus, 100);
+    strcat(tempData, "\"\n\t}\n");
+    statusCode = client.POST(tempData);
+    Serial.print("Informações de temperatura: ");
+    Serial.println(tempData);
+    Serial.println(statusCode);
+    delay(400);
 
     chuvaH = 0;
     chuva = 0;
