@@ -2,7 +2,7 @@
 #define DHTPIN 15       // Pino onde o sensor DHT11 está conectado
 #define DHTTYPE DHT11   // Tipo do sensor DHT
 #define REED_SWITCH 13  // Pino onde o reed switch está conectado
-#define arraySize 10     // Definindo o tamanho da Array
+#define arraySize 10    // Definindo o tamanho da Array
 
 /* Definindo regra de status return */
 #define TIPO_CHUVA 1
@@ -15,10 +15,10 @@
 #include "DHT.h"
 
 char ssid[] = "AndroidAP5599";                      // Nome da rede WiFi
-char pass[] = "barreto351";                       // Senha da rede WiFi
+char pass[] = "barreto351";                         // Senha da rede WiFi
 char serverAddress[] = "https://api.tago.io/data";  // TagoIO address
 char contentHeader[] = "application/json";
-char tokenHeader[] = "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621";  // TagoIO Token
+char tokenHeader[] = "ca8e83ae-5007-446e-8a27-a2d455500580";  // TagoIO Token
 
 HTTPClient client;  // Iniciar uma nova instância do cliente HTTP
 DHT dht(DHTPIN, DHTTYPE);
@@ -57,10 +57,10 @@ float addChuva = 0.4;
 float chuvaH = 0;
 bool reedStats = false;
 
-float lastChuva[arraySize] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float lastChuva[arraySize] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 int arrayCounter = 0;
 
-long controle = 0;          // Tempo do inicio do aparelho
+long controle = 0;           // Tempo do inicio do aparelho
 long intervalo = 20 * 1000;  // Controle de Minutos
 
 // Função para obter o status com base no valor
@@ -116,19 +116,16 @@ void loop() {
   if (reedStats) {
     delay(300);
     reedStats = false;
-    Serial.print("chuva: ");
-    Serial.println(chuva);
-    Serial.print("umidade: ");
-    Serial.println(umidade);
-    Serial.print("temperatura: ");
-    Serial.println(temperatura);
+    Serial.println("chuva: ", chuva, "mm");
+    Serial.println("umidade: ", umidade, "%");
+    Serial.println("temperatura: ", temperatura, "ºC");
+    Serial.println("-------------------------------------------------------------------------------");
   }
   if (agora - controle >= intervalo) {
     if (arrayCounter >= arraySize) {
       arrayCounter = 0;
     }
-    Serial.print("Soma = ");
-    Serial.println(chuvaH);
+    Serial.print("Chuva Última Hora = ", ChuvaH, "mm/h");
 
     lastChuva[arrayCounter] = chuva;
     arrayCounter = arrayCounter + 1;
@@ -136,6 +133,16 @@ void loop() {
     for (int i = 0; i < arraySize; i++) {
       chuvaH = chuvaH + lastChuva[i];
     }
+
+    Serial.print("lastChuva: [");
+    for (int i = 0; i < arraySize; i++) {
+      Serial.print(lastChuva[i]);
+      if (i < arraySize - 1) {
+        Serial.print(", ");
+      }
+    }
+    Serial.println("]");
+    Serial.println("-------------------------------------------------------------------------------");
 
     /* Mandando dados para TAGO */
     char varStatus[100];
@@ -154,7 +161,7 @@ void loop() {
     Serial.print("Informações de Chuva: ");
     Serial.println(chuvaData);
     Serial.println(statusCode);
-    delay (400);
+    delay(400);
 
     /* Informações de Umidade*/
     strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
@@ -185,14 +192,6 @@ void loop() {
     chuvaH = 0;
     chuva = 0;
 
-    Serial.print("lastChuva: [");
-    for (int i = 0; i < arraySize; i++) {
-      Serial.print(lastChuva[i]);
-      if (i < arraySize - 1) {
-        Serial.print(", ");
-      }
-    }
-    Serial.println("]");
     controle = millis();
   }
-} 
+}
