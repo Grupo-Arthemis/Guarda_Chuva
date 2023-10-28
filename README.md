@@ -6,49 +6,29 @@
 
 O projeto "Pé d'Água" adota uma abordagem integrada na obtenção e análise de dados de chuva, visando monitorar padrões de precipitação em São Paulo. A implementação abrange a coleta de informações provenientes do sensor Guarda_Chuva e sua integração a um banco de dados centralizado, permitindo o registro e a análise de padrões de chuva em diversas localizações da cidade. A avaliação dos dados se baseia na consideração da quantidade de chuva em milímetros e sua duração, o que contribui para a avaliação do potencial de alagamento.
 
-Além disso, o projeto incorpora a utilização do sensor de enchentes localizado em pontos estratégicos da cidade. Esse sensor, inspirado por um pluviômetro automatizado, opera em conjunto com a conectividade WiFi para transmitir informações em tempo real para o banco de dados central. Dentro desse repositório, as informações são submetidas a um processo de tratamento e análise, envolvendo o cruzamento de dados para a identificação de áreas de risco de alagamento.
-
-Para proporcionar uma interface acessível aos usuários, o projeto oferece a visualização dos dados coletados por meio de um mapa interativo. Além disso, a plataforma emprega notificações via SMS para comunicar informações cruciais aos usuários. A participação na utilização do serviço é viabilizada por meio do cadastramento dos usuários, garantindo a disponibilidade em tempo real das funcionalidades oferecidas. Adicionalmente, a interação dos usuários é incentivada por meio da possibilidade de enviar relatórios pessoais, contribuindo para a identificação de novas localizações estratégicas para a instalação de sensores de enchentes.
-
 ## Arquitetura do Projeto:
 
-### Dispositivos IoT:
+### Guarda_Chuva
 
-- **Pluviômetro Automatizado:**  Ele consiste em um funil ou uma superfície coletora que direciona a água da chuva para um Pluviômetro de Báscula projetado especificamente para medir a quantidade de chuva que cai em uma área utilizando, e um imã que junto de um reed switch para captar a oscilação do pluviômetro assim calculando sua frequência relativa a chuva.
+O código é um sistema de contagem de milímetros de chuva, onde cada pêndulo realizado pelo pluviômetro tem um valor X que é adicionado a uma variável que armazena o total de chuva acumulada em um período definido pelo usuário.
 
-### Backend:
+O código também conecta o ESP32 à internet e envia todas as informações necessárias para o Tago.io, uma plataforma que permite visualizar e analisar os dados coletados pelo sensor.
 
-- **Integração:** Coleta dados do sensor IoT, e dos reports de usuário e realiza a análise dos dados para determinar o risco de enchentes.
+*O código está comentado e pronto para ser modificado de acordo com a preferência do usuário*
 
-- **Alertas:** Gera e envia alertas aos usuários cadastrados em caso de risco iminente de enchente via SMS.
+### Frontend
 
-- **Dados:** Armazena dados históricos de chuva e informações de sensores IoT para análises futuras e dados do usuário utilizando IA e Machine learning.
-
-### Frontend:
-
-- **Web e Mobile:** Permite que os usuários visualizem mapas de risco de enchente, cadastrem-se para receber alertas e acessem informações detalhadas sobre os dados coletados, além de enviarem reports para o site sobre locais com enchentes.
+**Web e Mobile:** Permite que os usuários visualizem mapas de risco de enchente, cadastrem-se para receber alertas e acessem informações detalhadas sobre os dados coletados, além de enviarem reports para o site sobre locais com enchentes.
 
 ## Recursos Necessários:
+Para executar este código, você vai precisar dos seguintes componentes:
 
-### Dispositivos IoT:
-
-- **Conexão de Dados:** Internet e conectividade via chip para transmitir os dados coletados para o backend.
-
-- **Sistema de Sensor de Enchentes:** Pluviômetro de Báscula, localização disponível e Reed Switch .
-
-### Backend:
-
-- **Servidores:** Para hospedar os microsserviços de integração, alertas e dados.
-
-- **Framework de Desenvolvimento:** Em uma linguagem adequada para desenvolver os microsserviços.
-
-- **Banco de Dados:** Armazenamento dos dados históricos de chuva e informações dos sensores IoT.
-
-### Frontend:
-
-- **Interface de Mapa:** Integração com API de mapas para exibir dados de risco de enchente em um mapa interativo.
-
-- **Autenticação:** Mecanismo de autenticação seguro para os usuários se cadastrarem e receberem alertas.
+- 1 sensor de temperatura e umidade DHT11
+- 1 sensor magnético Reed Switch
+- 1 placa de desenvolvimento ESP32
+- 1 pluviômetro de báscula, que é um dispositivo que mede a precipitação pluviométrica por meio de um pêndulo que se inclina a cada volume de água acumulado.
+- ![image](http://www.c2o.pro.br/proj/pluviometro/figuras/animacao_pluviometro_bascula.gif).
+- 1 imã, que é usado para acionar o Reed Switch a cada movimento do pêndulo.
 
 ## Dependências:
 
