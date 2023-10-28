@@ -37,6 +37,3 @@ O sucesso e eficácia do projeto "Pé d'Água" repousa sobre uma série de depen
 ## Conclusão:
 
 Em síntese, o projeto "Pé d'Água" abraça uma abordagem integral para a obtenção e análise de dados de chuva, através da utilização de APIs, e sistemas IoT com dados em tempo real visando monitorar os padrões de precipitação em São Paulo, e nossa plataforma oferece uma interface interativa com mapas e notificações SMS, acessíveis após o cadastro dos usuários trabalhando Backend e Frontend.
-
-## Vídeo Pitch:
-https://youtu.be/Tf3k8Cagf3Y
