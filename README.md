@@ -19,6 +19,7 @@ O código também conecta o ESP32 à internet e envia todas as informações nec
 ### Frontend
 
 **Web e Mobile:** Permite que os usuários visualizem mapas de risco de enchente, cadastrem-se para receber alertas e acessem informações detalhadas sobre os dados coletados, além de enviarem reports para o site sobre locais com enchentes.
+- *O site:* [https://grupo-arthemis.github.io/Site_peDagua_React/](https://grupo-arthemis.github.io/Pe_Dagua_App/#/)
 
 ## Recursos Necessários:
 Para executar este código, você vai precisar dos seguintes componentes:
