@@ -10,45 +10,52 @@
 #define TIPO_UMIDADE 3
 
 /* Incluindo bibliotecas */
-#include "WiFi.h"
-#include "HTTPClient.h"
 #include "DHT.h"
+#include "ArduinoJson.h"
+#include "EspMQTTClient.h"
 
-char ssid[] = "AndroidAP5599";                      // Nome da rede WiFi
-char pass[] = "barreto351";                         // Senha da rede WiFi
-char serverAddress[] = "https://api.tago.io/data";  // TagoIO address
-char contentHeader[] = "application/json";
-char tokenHeader[] = "ca8e83ae-5007-446e-8a27-a2d455500580";  // TagoIO Token
-
-HTTPClient client;  // Iniciar uma nova instância do cliente HTTP
 DHT dht(DHTPIN, DHTTYPE);
+
+EspMQTTClient client //MQTT and WiFi configuration
+(
+  "AndroidAP5599",       //nome da sua rede Wi-Fi
+  "barreto351",          //senha da sua rede Wi-Fi
+  "mqtt.tago.io",       //Endereço do servidor MQTT
+  "Default",            //User é sempre default pois vamos usar token
+  "b6649bfb-bca8-4ee5-8cf6-5b8f021f4621",     // Código do Token
+  "Guarda_Chuva FIAP Paulista",              //Nome do device
+  1883                  //Porta de comunicação padrao
+);
 
 void setup() {
   Serial.begin(9600);
-  init_wifi();
+  Serial.println("Conectando WiFi");
+  while (!client.isWifiConnected()) {
+    Serial.print('.');
+    client.loop();
+    delay(1000);
+  }
+  Serial.println("Conectado!");
+  Serial.println("Conectando com o broker MQTT");
+  while (!client.isMqttConnected()) {
+    Serial.print('.');
+    client.loop();
+    delay(1000);
+  }
   pinMode(DHTPIN, INPUT);
   dht.begin();  // Inicializar o sensor DHT11
   pinMode(REED_SWITCH, INPUT);
   attachInterrupt(digitalPinToInterrupt(REED_SWITCH), count, FALLING);  //Debouncing Reed Switch
 }
 
-void init_wifi() {
-  Serial.println("Conectando WiFi");
-  WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(1000);
-  }
-  Serial.println("Conectado");
-  Serial.print("Meu IP eh: ");
-  Serial.println(WiFi.localIP());
-}
+void onConnectionEstablished()
+{}
 
-char anyData[30];
+int statusCode = 0;
 char chuvaData[300];
 char umidadeData[300];
 char tempData[300];
-int statusCode = 0;
+char anyData[30];
 
 float temperatura = 0;
 float umidade = 0;
@@ -116,16 +123,11 @@ void loop() {
   if (reedStats) {
     delay(300);
     reedStats = false;
-    Serial.println("chuva: ", chuva, "mm");
-    Serial.println("umidade: ", umidade, "%");
-    Serial.println("temperatura: ", temperatura, "ºC");
-    Serial.println("-------------------------------------------------------------------------------");
   }
   if (agora - controle >= intervalo) {
     if (arrayCounter >= arraySize) {
       arrayCounter = 0;
     }
-    Serial.print("Chuva Última Hora = ", ChuvaH, "mm/h");
 
     lastChuva[arrayCounter] = chuva;
     arrayCounter = arrayCounter + 1;
@@ -141,53 +143,46 @@ void loop() {
         Serial.print(", ");
       }
     }
-    Serial.println("]");
-    Serial.println("-------------------------------------------------------------------------------");
 
     /* Mandando dados para TAGO */
     char varStatus[100];
+    char docInfo[300];
+    char bufferJson[100];
+
+    StaticJsonDocument<300> documentoJson;
 
     /* Informações de Chuva*/
-    strcpy(chuvaData, "{\n\t\"variable\": \"Chuva\",\n\t\"value\": \"");
     dtostrf(chuvaH, 6, 2, anyData);
     strncat(chuvaData, anyData, 100);
     getStatus(chuvaH, TIPO_CHUVA, varStatus);
     strncat(chuvaData, varStatus, 100);
-    strcat(chuvaData, "\"\n\t}\n");
-    client.begin(serverAddress);
-    client.addHeader("Content-Type", contentHeader);
-    client.addHeader("Device-Token", tokenHeader);
-    statusCode = client.POST(chuvaData);
-    Serial.print("Informações de Chuva: ");
-    Serial.println(chuvaData);
-    Serial.println(statusCode);
-    delay(400);
+    documentoJson["variable"] = "Chuva";
+    documentoJson["value"] = chuvaData;
 
     /* Informações de Umidade*/
-    strcpy(umidadeData, "{\n\t\"variable\": \"Umidade\",\n\t\"value\": \"");
     dtostrf(umidade, 6, 2, anyData);
     strncat(umidadeData, anyData, 100);
     getStatus(umidade, TIPO_UMIDADE, varStatus);
     strncat(umidadeData, varStatus, 100);
-    strcat(umidadeData, "\"\n\t}\n");
-    statusCode = client.POST(umidadeData);
-    Serial.print("Informações de umidade: ");
-    Serial.println(umidadeData);
-    Serial.println(statusCode);
-    delay(400);
+    documentoJson["variable"] = "Umidade";
+    documentoJson["value"] = umidadeData;
 
     /* Informações de Temperatura*/
-    strcpy(tempData, "{\n\t\"variable\": \"Temperatura\",\n\t\"value\": \"");
     dtostrf(temperatura, 6, 2, anyData);
     strncat(tempData, anyData, 100);
     getStatus(temperatura, TIPO_TEMPERATURA, varStatus);
     strncat(tempData, varStatus, 100);
-    strcat(tempData, "\"\n\t}\n");
-    statusCode = client.POST(tempData);
-    Serial.print("Informações de temperatura: ");
-    Serial.println(tempData);
-    Serial.println(statusCode);
+    documentoJson["variable"] = "Temperatura";
+    documentoJson["value"] = tempData;
+
+
+    serializeJson(documentoJson, docInfo);
+    Serial.println("Enviando dados");
+    Serial.println(docInfo);
+
+    client.publish("info", docInfo);
     delay(400);
+    client.loop();
 
     chuvaH = 0;
     chuva = 0;
